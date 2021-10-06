@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import Blogs from './components/Blogs'
 import Login from './components/Login'
-import ErrorMessage from './components/ErrorMessage'
+import BlogForm from './components/BlogForm'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -10,12 +11,23 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [newTitle, setNewTitle] = useState('')
+  const [newAuthor, setNewAuthor] = useState('')
+  const [newUrl, setNewUrl] = useState('')
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs(blogs)
     )
+  }, [])
+
+  useEffect(() => {
+    const loggedInUserJSON = window.localStorage.getItem('loggedInUser')
+    if (loggedInUserJSON) {
+      const user = JSON.parse(loggedInUserJSON)
+      setUser(user)
+    }
   }, [])
 
   const handleLogin = async (event) => {
@@ -24,22 +36,38 @@ const App = () => {
       const user = await loginService.login({
         username, password
       })
+      window.localStorage.setItem(
+        'loggedInUser', JSON.stringify(user)
+      )
       setUser(user)
       setUsername('')
       setPassword('')
     } catch (error) {
-      setErrorMessage('learn to type!')
+      setNotification({
+        message: 'learn to type!',
+        type: 'error'
+      })
       setTimeout(() => {
-        setErrorMessage(null)
+        setNotification(null)
       }, 5000)
     }
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    window.localStorage.removeItem('loggedInUser')
+  }
+
+  const addBlog = (event) => {
+    event.preventDefault()
+    console.log('title', newTitle)
   }
 
   if (user === null) {
     return (
       <div>
         {
-          errorMessage !== null && <ErrorMessage message={errorMessage} />
+          notification !== null && <Notification notification={notification} />
         }
         <h2>log in to application</h2>
         <Login
@@ -56,10 +84,19 @@ const App = () => {
     return (
       <div>
         {
-          errorMessage !== null && <ErrorMessage message={errorMessage} />
+          notification !== null && <Notification notification={notification} />
         }
         <h2>blogs</h2>
-        logged in as {user.name} <br /><br />
+        logged in as {user.name} <button onClick={handleLogout}>logout</button> <br /><br />
+        <BlogForm
+          addBlog={addBlog}
+          title={newTitle}
+          author={newAuthor}
+          url={newUrl}
+          setTitle={setNewTitle}
+          setAuthor={setNewAuthor}
+          setUrl={setNewUrl}
+        />
         <Blogs blogs={blogs} />
       </div>
     )
