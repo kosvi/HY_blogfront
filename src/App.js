@@ -39,6 +39,7 @@ const App = () => {
       window.localStorage.setItem(
         'loggedInUser', JSON.stringify(user)
       )
+      blogService.setToken(user.token)
       setUser(user)
       setUsername('')
       setPassword('')
@@ -58,9 +59,33 @@ const App = () => {
     window.localStorage.removeItem('loggedInUser')
   }
 
-  const addBlog = (event) => {
+  const addBlog = async (event) => {
     event.preventDefault()
-    console.log('title', newTitle)
+    const newBlog = {
+      title: newTitle,
+      author: newAuthor,
+      url: newUrl
+    }
+    try {
+      const response = await blogService.addBlog(newBlog)
+      const newBlogList = blogs.concat(response)
+      setBlogs(newBlogList)
+      setNotification({
+        message: `a new blog ${response.title} by ${response.author} added`,
+        type: 'success'
+      })
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
+    } catch (error) {
+      setNotification({
+        message: 'error in saving new blog entry',
+        type: 'error'
+      })
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
+    }
   }
 
   if (user === null) {

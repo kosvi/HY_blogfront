@@ -4,7 +4,7 @@ const BlogForm = ({ addBlog, title, author, url, setTitle, setAuthor, setUrl }) 
   return (
     <div>
       <h2>create new</h2>
-      <form onClick={addBlog}>
+      <form onSubmit={addBlog}>
         title: <input type='text' value={title} onChange={({ target }) => setTitle(target.value)} /><br />
         author: <input type='text' value={author} onChange={({ target }) => setAuthor(target.value)} /><br />
         url: <input type='text' value={url} onChange={({ target }) => setUrl(target.value)} /><br />
