@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Blogs from './components/Blogs'
 import Login from './components/Login'
 import BlogForm from './components/BlogForm'
@@ -12,14 +12,18 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [newTitle, setNewTitle] = useState('')
-  const [newAuthor, setNewAuthor] = useState('')
-  const [newUrl, setNewUrl] = useState('')
   const [notification, setNotification] = useState(null)
+
+  const sortSetBlogs = (blogs) => {
+    const sortedList = blogs.sort((a, b) => b.likes - a.likes)
+    setBlogs(sortedList)
+  }
+
+  const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
-      setBlogs(blogs)
+      sortSetBlogs(blogs)
     )
   }, [])
 
@@ -27,6 +31,7 @@ const App = () => {
     const loggedInUserJSON = window.localStorage.getItem('loggedInUser')
     if (loggedInUserJSON) {
       const user = JSON.parse(loggedInUserJSON)
+      blogService.setToken(user.token)
       setUser(user)
     }
   }, [])
@@ -60,17 +65,12 @@ const App = () => {
     window.localStorage.removeItem('loggedInUser')
   }
 
-  const addBlog = async (event) => {
-    event.preventDefault()
-    const newBlog = {
-      title: newTitle,
-      author: newAuthor,
-      url: newUrl
-    }
+  const addBlog = async (newBlog) => {
     try {
+      blogFormRef.current.toggleVisibility()
       const response = await blogService.addBlog(newBlog)
       const newBlogList = blogs.concat(response)
-      setBlogs(newBlogList)
+      sortSetBlogs(newBlogList)
       setNotification({
         message: `a new blog ${response.title} by ${response.author} added`,
         type: 'success'
@@ -81,6 +81,53 @@ const App = () => {
     } catch (error) {
       setNotification({
         message: 'error in saving new blog entry',
+        type: 'error'
+      })
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
+    }
+  }
+
+  const addLike = async (blog) => {
+    try {
+      const response = await blogService.likeBlog(blog)
+      const blogList = blogs.map(b => b.id === response.id ? { ...response, user: blog.user } : b)
+      sortSetBlogs(blogList)
+      setNotification({
+        message: `${response.title} by ${response.author} was liked`,
+        type: 'success'
+      })
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
+    } catch (error) {
+      setNotification({
+        message: 'could not add a like',
+        type: 'error'
+      })
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
+    }
+  }
+
+  const removeBlog = async (blog) => {
+    try {
+      const blogId = blog.id
+      await blogService.deleteBlog(blog)
+      const blogList = blogs.filter(b => b.id !== blogId)
+      sortSetBlogs(blogList)
+      setNotification({
+        message: `${blog.title} by ${blog.author} deleted succesfully`,
+        type: 'success'
+      })
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
+    } catch (error) {
+      setNotification({
+        message: error.message,
         type: 'error'
       })
       setTimeout(() => {
@@ -114,18 +161,12 @@ const App = () => {
         }
         <h2>blogs</h2>
         logged in as {user.name} <button onClick={handleLogout}>logout</button> <br /><br />
-        <Togglable buttonLabel='add new blog'>
+        <Togglable buttonLabel='add new blog' ref={blogFormRef}>
           <BlogForm
             addBlog={addBlog}
-            title={newTitle}
-            author={newAuthor}
-            url={newUrl}
-            setTitle={setNewTitle}
-            setAuthor={setNewAuthor}
-            setUrl={setNewUrl}
           />
         </Togglable><br /><br />
-        <Blogs blogs={blogs} />
+        <Blogs blogs={blogs} addLike={addLike} removeBlog={removeBlog} userId={user.id} />
       </div>
     )
   }

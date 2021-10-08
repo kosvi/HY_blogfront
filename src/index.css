@@ -9,3 +9,9 @@
   color: green;
   font-size: 2em;
 }
+
+.blog {
+  border: solid 2px black;
+  padding: 0.2em;
+  margin-bottom: 0.2em;
+}
