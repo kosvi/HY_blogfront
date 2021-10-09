@@ -2,7 +2,7 @@ module.exports = {
   'env': {
     'browser': true,
     'es2021': true,
-    'node': true
+    'jest/globals': true
   },
   'extends': [
     'eslint:recommended',
@@ -16,7 +16,7 @@ module.exports = {
     'sourceType': 'module'
   },
   'plugins': [
-    'react'
+    'react', 'jest'
   ],
   'rules': {
     'indent': [
@@ -37,6 +37,17 @@ module.exports = {
     ],
     'eqeqeq': 'error',
     'no-trailing-spaces': 'error',
-    'react/prop-types': 'off'
+    'react/prop-types': 'off',
+    'object-curly-spacing': [
+      'error', 'always'
+    ],
+    'arrow-spacing': [
+      'error', { 'before': true, 'after': true }
+    ]
+  },
+  'settings': {
+    'react': {
+      'version': 'detect'
+    }
   }
 }
