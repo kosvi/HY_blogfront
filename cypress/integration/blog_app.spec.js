@@ -1,5 +1,3 @@
-import 'cypress-localstorage-commands'
-
 describe('Blog app', function () {
   const user = {
     name: 'Testi Testaaja',
@@ -54,23 +52,8 @@ describe('Blog app', function () {
     })
 
     it('A blog can be likes', function () {
-      cy.getLocalStorage('loggedInUser').then(loggedInUser => {
-        const token = `bearer ${loggedInUser.token}`
-        cy.request({
-          method: 'POST',
-          url: 'http://localhost:3003/api/blogs',
-          headers: {
-            'Content-type': 'application/json',
-            'Authorization': token
-          },
-          body: {
-            'title': 'jotain',
-            'author': 'jotain2',
-            'url': 'url1'
-          }
-        })
-      })
-      cy.visit('http://localhost:3000')
+      cy.addBlogs()
+      // now let's test liking!
     })
   })
 })
