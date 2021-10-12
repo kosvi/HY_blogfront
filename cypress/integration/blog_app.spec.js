@@ -51,9 +51,43 @@ describe('Blog app', function () {
       cy.get('#blogList').contains('foobar').contains('Sensei Foobar')
     })
 
-    it('A blog can be likes', function () {
+    it('A blog can be liked', function () {
       cy.addBlogs()
       // now let's test liking!
+      cy.contains('.blog', 'testi1').contains('view').click()
+      cy.contains('.blog', 'testi1').contains('likes 0')
+      cy.contains('.blog', 'testi1').contains('like').click()
+      cy.get('.success').contains('was liked')
+      cy.contains('.blog', 'testi1').contains('likes 1')
+    })
+
+    it('A blog can be deleted', function () {
+      cy.addBlogs()
+      cy.contains('.blog', 'testi2').contains('view').click()
+      cy.contains('.blog', 'testi2').contains('remove').click()
+      cy.contains('.blog', 'testi2').should('not.exist')
+      cy.reload()
+      cy.contains('.blog', 'testi2').should('not.exist')
+    })
+
+    it('List by likes', function () {
+      // this will be a sh**ty script and most certainly not going to be pretty
+      cy.addBlogs()
+      cy.get('.blog').should('have.length', 3).each((blog, index) => {
+        cy.wrap(blog).contains('view').click()
+        cy.wrap(blog).contains(`testi${index + 1}`)
+      })
+      // this SHOULD be refactored, but I guess I'll make it prettier in my project
+      cy.contains('.blog', 'testi3').contains('like').click().then(() => {
+        cy.contains('.blog', 'testi3').contains('like').click().then(() => {
+          cy.contains('.blog', 'testi2').contains('like').click().then(() => {
+            cy.wait(500)
+            cy.get('.blog').should('have.length', 3).each((blog, index) => {
+              cy.wrap(blog).contains(`testi${3 - index}`)
+            })
+          })
+        })
+      })
     })
   })
 })

@@ -36,5 +36,18 @@ Cypress.Commands.add('addBlogs', () => {
       'url': 'http://blog2.example.com'
     }
   })
+  cy.request({
+    method: 'POST',
+    url: 'http://localhost:3003/api/blogs',
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': token
+    },
+    body: {
+      'title': 'testi3',
+      'author': 'nimetön kirjoittelija',
+      'url': 'http://blog3.example.com'
+    }
+  })
   cy.visit('http://localhost:3000')
 })
